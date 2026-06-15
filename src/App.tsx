@@ -1,7 +1,9 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Terminal, Lock, Heart as HeartIcon, Sparkles } from 'lucide-react';
 import TextHeart from './components/TextHeart';
+// @ts-ignore
+import loveuUrl from '@/loveu.mp3';
 
 const Typewriter = ({ text, delay = 50, onComplete }: { text: string, delay?: number, onComplete?: () => void }) => {
   const [currentText, setCurrentText] = useState("");
@@ -26,11 +28,27 @@ export default function App() {
   const [stage, setStage] = useState<'console' | 'reveal'>('console');
   const [consoleFinished, setConsoleFinished] = useState(false);
 
+  const audio = useMemo(() => {
+    const a = new Audio(loveuUrl);
+    a.loop = true;
+    return a;
+  }, []);
+
+  const playAudio = useCallback(() => {
+    audio.play().catch(err => console.log("Audio play failed:", err));
+  }, [audio]);
+
+  const stopAudio = useCallback(() => {
+    audio.pause();
+    audio.currentTime = 0;
+  }, [audio]);
+
   const handleReveal = useCallback(() => {
     if (stage === 'console' && consoleFinished) {
       setStage('reveal');
+      playAudio();
     }
-  }, [stage, consoleFinished]);
+  }, [stage, consoleFinished, playAudio]);
 
   return (
     <div 
@@ -86,6 +104,7 @@ export default function App() {
                     onClick={(e) => {
                       e.stopPropagation();
                       setStage('reveal');
+                      playAudio();
                     }}
                     className="group flex items-center gap-3 px-6 py-3 border border-pink-deep/30 bg-pink-deep/5 hover:bg-pink-deep/10 text-pink-soft transition-all duration-300 pointer-events-auto"
                   >
@@ -125,6 +144,7 @@ export default function App() {
                 onClick={(e) => {
                   e.stopPropagation();
                   setStage('console');
+                  stopAudio();
                 }}
                 className="text-white/20 hover:text-white/60 transition-colors uppercase text-[10px] tracking-widest font-mono"
               >
